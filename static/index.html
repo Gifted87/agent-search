@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentSearch — AI-Native Search & Content Engine</title>
+  <meta name="description" content="Intelligent neural and semantic search interface with multi-engine deduplication and 10-layer content extraction.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-theme">
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand" id="brand-home-btn" role="button" tabindex="0">
+        <div class="brand-symbol">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">AgentSearch</span>
+          <span class="brand-badge">EXA V2</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" role="tablist">
+        <button class="nav-tab active" data-tab="search" id="tab-search" role="tab" aria-selected="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          Search
+        </button>
+        <button class="nav-tab" data-tab="reader" id="tab-reader" role="tab" aria-selected="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          Reader & Extraction
+        </button>
+        <button class="nav-tab" data-tab="telemetry" id="tab-telemetry" role="tab" aria-selected="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          Engines & Health
+        </button>
+      </nav>
+    </div>
+
+    <div class="header-right">
+      <div class="status-indicator-badge" id="system-status-indicator" title="Checking cluster connectivity">
+        <span class="status-dot pulse"></span>
+        <span class="status-text" id="system-status-label">Connecting</span>
+      </div>
+      <a href="/docs" target="_blank" class="header-link-btn" title="Open FastAPI Interactive OpenAPI Docs">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Swagger API
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- SEARCH VIEW -->
+    <section class="view-panel active" id="view-search">
+      <div class="search-hero">
+        <h1 class="hero-heading">What do you want to find?</h1>
+        <p class="hero-subtext">Neural-grade search across web, code, academic papers, and live knowledge bases.</p>
+
+        <!-- Search Input Box -->
+        <div class="search-box-wrapper" id="search-box-wrapper">
+          <div class="search-input-prefix">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            id="search-input" 
+            class="search-input" 
+            placeholder="Search queries, technical topics, URLs, or natural questions..." 
+            autocomplete="off" 
+            spellcheck="false"
+            autofocus
+          >
+          <div class="search-input-actions">
+            <button id="clear-search-btn" class="icon-action-btn hidden" title="Clear input" aria-label="Clear input">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <button id="search-submit-btn" class="submit-action-btn" title="Execute Search (Enter)">
+              <span class="btn-label">Search</span>
+              <kbd class="shortcut-kbd">↵</kbd>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode Pills -->
+        <div class="search-modes-container">
+          <span class="mode-label">Mode:</span>
+          <div class="mode-pills" id="mode-pills-list">
+            <button class="mode-pill active" data-mode="web" id="mode-web">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              Web (SearXNG)
+            </button>
+            <button class="mode-pill" data-mode="auto" id="mode-auto">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              Auto / Deep
+            </button>
+            <button class="mode-pill" data-mode="news" id="mode-news">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+              News (SearXNG)
+            </button>
+            <button class="mode-pill" data-mode="code" id="mode-code">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              Code & Dev
+            </button>
+            <button class="mode-pill" data-mode="reference" id="mode-reference">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+              Reference
+            </button>
+            <button class="mode-pill" data-mode="academic" id="mode-academic">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+              Academic
+            </button>
+            <button class="mode-pill" data-mode="community" id="mode-community">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              Community
+            </button>
+          </div>
+        </div>
+
+        <!-- Options Toolbar -->
+        <div class="search-options-toolbar">
+          <div class="toolbar-group">
+            <span class="toolbar-label">SearXNG Engine:</span>
+            <select id="engine-selector" class="engine-select">
+              <option value="all">⚡ All SearXNG Engines</option>
+              <option value="bing">🔷 Bing (SearXNG)</option>
+              <option value="wikipedia">📖 Wikipedia (SearXNG)</option>
+              <option value="github">🐙 GitHub (SearXNG)</option>
+              <option value="arxiv">📄 arXiv (SearXNG)</option>
+              <option value="bing news">📰 Bing News (SearXNG)</option>
+              <option value="bing images">🖼️ Bing Images (SearXNG)</option>
+              <option value="bing videos">🎬 Bing Videos (SearXNG)</option>
+            </select>
+          </div>
+
+          <div class="toolbar-group">
+            <span class="toolbar-label">Results:</span>
+            <div class="segmented-control" id="count-selector">
+              <button class="segment-btn active" data-count="5">5</button>
+              <button class="segment-btn" data-count="10">10</button>
+              <button class="segment-btn" data-count="20">20</button>
+            </div>
+          </div>
+
+          <div class="toolbar-group">
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="extract-toggle" class="toggle-checkbox">
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Deep Extraction</span>
+            </label>
+          </div>
+
+          <div class="toolbar-group ml-auto">
+            <div class="view-switcher" id="view-switcher">
+              <button class="switch-btn active" data-view="cards" id="switch-view-cards" title="Visual Cards">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                Cards
+              </button>
+              <button class="switch-btn" data-view="json" id="switch-view-json" title="Raw JSON Response">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                JSON
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Suggestions (Empty State) -->
+        <div class="quick-prompts-container" id="quick-prompts-container">
+          <span class="prompts-title">Try searching:</span>
+          <div class="prompts-grid">
+            <button class="prompt-chip" data-query="Python async concurrency best practices">
+              <span class="chip-cat">Code</span>
+              <span class="chip-text">Python async concurrency best practices</span>
+            </button>
+            <button class="prompt-chip" data-query="Quantum computing decoherence mitigation 2026">
+              <span class="chip-cat">Academic</span>
+              <span class="chip-text">Quantum computing decoherence mitigation</span>
+            </button>
+            <button class="prompt-chip" data-query="Model Context Protocol specification">
+              <span class="chip-cat">Reference</span>
+              <span class="chip-text">Model Context Protocol specification</span>
+            </button>
+            <button class="prompt-chip" data-query="Distributed consensus algorithms Raft Paxos">
+              <span class="chip-cat">Deep</span>
+              <span class="chip-text">Distributed consensus algorithms Raft Paxos</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Header Stats -->
+      <div class="results-stats-bar hidden" id="results-stats-bar">
+        <div class="stats-left">
+          <span class="stats-count" id="stats-count-label">0 results</span>
+          <span class="stats-divider">•</span>
+          <span class="stats-latency" id="stats-latency-label">0ms</span>
+          <span class="stats-divider">•</span>
+          <span class="stats-engines" id="stats-engines-label">Direct</span>
+        </div>
+        <div class="stats-right">
+          <button class="copy-json-btn" id="copy-json-btn" title="Copy raw API JSON">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Display (Cards View) -->
+      <div class="results-cards-container" id="results-cards-container"></div>
+
+      <!-- Results Display (JSON View) -->
+      <div class="results-json-container hidden" id="results-json-container">
+        <pre><code id="json-code-block" class="language-json"></code></pre>
+      </div>
+
+      <!-- Loading Skeleton -->
+      <div class="search-skeleton-container hidden" id="search-skeleton">
+        <div class="skeleton-card">
+          <div class="skeleton-line w-25"></div>
+          <div class="skeleton-line w-75 h-20"></div>
+          <div class="skeleton-line w-100"></div>
+          <div class="skeleton-line w-60"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-line w-20"></div>
+          <div class="skeleton-line w-80 h-20"></div>
+          <div class="skeleton-line w-95"></div>
+          <div class="skeleton-line w-50"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skeleton-line w-30"></div>
+          <div class="skeleton-line w-70 h-20"></div>
+          <div class="skeleton-line w-90"></div>
+          <div class="skeleton-line w-40"></div>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-banner hidden" id="error-banner">
+        <div class="error-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        <div class="error-content">
+          <h4 class="error-title" id="error-title">Search Request Failed</h4>
+          <p class="error-message" id="error-message">Something went wrong.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- READER & EXTRACTION VIEW -->
+    <section class="view-panel" id="view-reader">
+      <div class="reader-hero">
+        <h2 class="section-title">10-Tier Kill Chain URL Reader</h2>
+        <p class="section-desc">Extract cleaned, de-paywalled markdown and structured text from any web page, PDF, or YouTube video with automatic prompt-injection scrubbing.</p>
+
+        <div class="reader-input-box">
+          <input type="url" id="reader-url-input" class="reader-url-input" placeholder="https://example.com/article-or-documentation" autocomplete="off">
+          <button id="reader-extract-btn" class="primary-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Extract Content
+          </button>
+        </div>
+
+        <div class="reader-options">
+          <label class="toggle-switch-label">
+            <input type="checkbox" id="browser-render-toggle" class="toggle-checkbox">
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Use Headless Browser Renderer (for JS-rendered Single Page Apps)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="reader-result-wrapper hidden" id="reader-result-wrapper">
+        <div class="reader-meta-bar">
+          <div class="meta-item">
+            <span class="meta-lbl">Strategy:</span>
+            <span class="meta-val badge-primary" id="reader-strategy-badge">Direct</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-lbl">Characters:</span>
+            <span class="meta-val" id="reader-chars-val">0</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-lbl">Strategies Tried:</span>
+            <span class="meta-val" id="reader-chain-val">none</span>
+          </div>
+          <div class="meta-actions ml-auto">
+            <button class="secondary-btn" id="reader-copy-content-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy Text
+            </button>
+          </div>
+        </div>
+
+        <div class="reader-content-box">
+          <pre id="reader-extracted-text"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ENGINES & TELEMETRY VIEW -->
+    <section class="view-panel" id="view-telemetry">
+      <div class="telemetry-hero">
+        <h2 class="section-title">Engines, Providers & Telemetry</h2>
+        <p class="section-desc">Real-time status of connected search providers, vertical engines, and SearXNG backends.</p>
+        <button id="refresh-telemetry-btn" class="secondary-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          Refresh Telemetry
+        </button>
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="telemetry-card">
+          <div class="card-header">
+            <h3>Direct Vertical Providers</h3>
+            <span class="badge-success">Operational</span>
+          </div>
+          <p class="card-desc">No external SearXNG instance required. Directly queries upstream public APIs.</p>
+          <ul class="provider-list">
+            <li><span class="dot-ok"></span> <strong>Wikipedia</strong> — Encyclopedic reference</li>
+            <li><span class="dot-ok"></span> <strong>Wikidata</strong> — Structured entities</li>
+            <li><span class="dot-ok"></span> <strong>GitHub Repos</strong> — Code and projects</li>
+            <li><span class="dot-ok"></span> <strong>MDN Web Docs</strong> — Web standards & APIs</li>
+            <li><span class="dot-ok"></span> <strong>PyPI Packages</strong> — Python ecosystem</li>
+            <li><span class="dot-ok"></span> <strong>arXiv & OpenAlex</strong> — Academic literature</li>
+            <li><span class="dot-ok"></span> <strong>Hacker News</strong> — Community discussions</li>
+          </ul>
+        </div>
+
+        <div class="telemetry-card">
+          <div class="card-header">
+            <h3>SearXNG Multi-Engine Broad Search</h3>
+            <span id="searxng-status-badge" class="badge-neutral">Checking...</span>
+          </div>
+          <p class="card-desc">Provides multi-engine web aggregation across Bing, Wikipedia, ArXiv, GitHub, and News.</p>
+          <div class="searxng-details" id="searxng-details-box">
+            <div class="status-row">
+              <span>SearXNG Upstream:</span>
+              <span id="searxng-url-val" class="mono-val">http://127.0.0.1:8080</span>
+            </div>
+            <div class="status-row">
+              <span>Web Search Ready:</span>
+              <span id="searxng-ready-val">Checking...</span>
+            </div>
+            <div class="status-row">
+              <span>API Gateway:</span>
+              <span class="mono-val">http://127.0.0.1:3939</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="telemetry-card" style="grid-column: 1 / -1;">
+          <div class="card-header">
+            <h3>SearXNG Engine Mesh</h3>
+            <span class="badge-success" id="searxng-engine-count">Connected</span>
+          </div>
+          <p class="card-desc">Active search engines dynamically available through the SearXNG backend at <code class="mono-val">http://127.0.0.1:8080</code>:</p>
+          <div class="engines-badges-grid" id="searxng-engines-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+            <span class="engine-pill" style="padding: 6px 12px; font-size: 0.82rem; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd;">🔷 Bing (Web)</span>
+            <span class="engine-pill" style="padding: 6px 12px; font-size: 0.82rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7;">📖 Wikipedia (General & List)</span>
+            <span class="engine-pill" style="padding: 6px 12px; font-size: 0.82rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fcd34d;">📰 Bing News (Live)</span>
+            <span class="engine-pill" style="padding: 6px 12px; font-size: 0.82rem; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #d8b4fe;">🐙 GitHub (Code)</span>
+            <span class="engine-pill" style="padding: 6px 12px; font-size: 0.82rem; background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); color: #f472b6;">📄 arXiv (Academic)</span>
+            <span class="engine-pill" style="padding: 6px 12px; font-size: 0.82rem; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd;">🖼️ Bing Images</span>
+            <span class="engine-pill" style="padding: 6px 12px; font-size: 0.82rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;">🎬 Bing Videos</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SIDE DRAWER: EXA-STYLE READER PREVIEW -->
+  <aside class="reader-drawer" id="reader-drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <span class="drawer-badge" id="drawer-engine-badge">Result Details</span>
+        <h3 class="drawer-title" id="drawer-title">Extracted Document</h3>
+      </div>
+      <button class="drawer-close-btn" id="drawer-close-btn" title="Close drawer (Esc)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="drawer-meta">
+      <a href="#" target="_blank" rel="noopener noreferrer" class="drawer-url" id="drawer-url-link">
+        <span id="drawer-url-text">https://...</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </a>
+      <div class="drawer-stats">
+        <span class="meta-tag" id="drawer-score-tag">Score: 0.95</span>
+        <span class="meta-tag" id="drawer-strategy-tag">Direct Extract</span>
+      </div>
+    </div>
+
+    <div class="drawer-body">
+      <div class="drawer-loading hidden" id="drawer-loading">
+        <div class="spinner"></div>
+        <p>Running multi-tier content extraction kill chain...</p>
+      </div>
+      <div class="drawer-content" id="drawer-content-body"></div>
+    </div>
+
+    <div class="drawer-footer">
+      <button class="secondary-btn w-full" id="drawer-copy-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        Copy Extracted Content
+      </button>
+    </div>
+  </aside>
+
+  <!-- Overlay -->
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast" role="alert"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

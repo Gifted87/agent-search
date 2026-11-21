@@ -13,8 +13,19 @@ venv/
 .pytest_cache/
 .ruff_cache/
 searxng/uwsgi.ini
-data/*.db
 .mcpregistry_*
+
+# Data and SQLite runtime state
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Test output dumps and local run artifacts
+test_*.json
+agent_search_test.json
+default_search.json
+*.jsonl
 
 # local-only secret-bearing files
 credentials/*
@@ -23,8 +34,13 @@ credentials/*
 !credentials/*.example
 searxng/settings.yml
 searxng/settings.tor.yml
+searxng/settings.default.yml
 /torproxy/
 compose.local.yml
 dns/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
 
 # examples/ is publishable (secrets stripped) — don't ignore it

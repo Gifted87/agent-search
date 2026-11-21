@@ -9,6 +9,8 @@ services:
     restart: unless-stopped
     environment:
       - SEARXNG_BASE_URL=http://searxng:8080/
+    ports:
+      - "0.0.0.0:8080:8080"
 
   api:
     build:

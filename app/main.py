@@ -35,10 +35,13 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import AsyncGenerator
 from urllib.parse import urlparse
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from app.cache import Cache
 from app.content_cache import ContentCache
@@ -71,6 +74,9 @@ from app.models import (
 )
 
 import logging
+from dotenv import load_dotenv
+load_dotenv(".env.native")
+load_dotenv()
 
 SEARXNG_URL = os.getenv("SEARXNG_URL", "http://searxng:8080")
 CACHE_TTL = int(os.getenv("CACHE_TTL", "3600"))
@@ -166,10 +172,24 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost", "http://127.0.0.1"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Static files and Web UI
+_STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
+
+@app.api_route("/", methods=["GET", "HEAD"], response_class=FileResponse, include_in_schema=False)
+async def root():
+    """Serve the Exa-style UI."""
+    index_file = _STATIC_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    return {"message": "AgentSearch API running. Visit /docs for API documentation."}
 
 # --- Rate Limiting ---
 
@@ -189,8 +209,9 @@ _AUTH_TOKEN = os.getenv("AGENT_SEARCH_TOKEN", "")
 
 @app.middleware("http")
 async def auth_middleware(request, call_next):
-    """Bearer token auth. Skips /health for monitoring."""
-    if _AUTH_TOKEN and request.url.path != "/health":
+    """Bearer token auth. Skips /health, UI, and docs for monitoring."""
+    path = request.url.path
+    if _AUTH_TOKEN and path not in ("/health", "/", "/docs", "/redoc", "/openapi.json") and not path.startswith("/static"):
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer ") or not secrets.compare_digest(auth_header[7:], _AUTH_TOKEN):
             from fastapi.responses import JSONResponse
